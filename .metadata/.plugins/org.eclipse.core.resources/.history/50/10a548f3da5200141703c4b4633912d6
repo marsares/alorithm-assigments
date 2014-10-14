@@ -1,0 +1,51 @@
+
+public class KdTree {
+	
+	private BST<Key,Point2D> bst; 
+	
+	public KdTree(){
+		bst=new BST<Key,Point2D>();
+	}
+	
+	public boolean isEmpty(){
+		return bst.isEmpty();
+	}
+	
+	public int size(){
+		return bst.size();
+	}
+	
+	public void insert(Point2D p){
+		if(p==null){
+			IllegalArgumentException exp=new IllegalArgumentException("the point is not existed.");
+			throw exp;
+		}
+		int n=(int) (Math.log(size()+1)/Math.log(2))+1;
+		int flag=(n+1)%2;
+		Key key=new Key(p.x(),p.y(),flag);
+		bst.put(key, p);
+	}
+	
+	public boolean contains(Point2D p){
+		Key key=new Key(p.x(),p.y());
+		return bst.contains(key);
+	}
+	
+	public void draw(){
+		for(Key key:bst.keys()){
+			bst.get(key).draw();
+		}
+	}
+	
+	public Iterable<Point2D> range(RectHV rect){
+		
+	}
+	
+	public Point2D nearest(Point2D p){
+		
+	}
+	
+	public static void main(String[] args){
+		
+	}
+}

@@ -1,0 +1,62 @@
+
+public class PointSET {
+	
+	private SET<Point2D> pointset;
+	
+	public PointSET(){
+		pointset=new SET<Point2D>();
+	}
+	
+	public boolean isEmpty(){
+		return pointset.isEmpty();
+	}
+	
+	public int size(){
+		return pointset.size();
+	}
+	
+	public void insert(Point2D p){
+		pointset.add(p);
+	}
+	
+	public boolean contains(Point2D p){
+		for(Point2D point:pointset){
+			if(p.equals(point)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void draw(){
+		for(Point2D point:pointset){
+			point.draw();
+		}
+	}
+	
+	public Iterable<Point2D> range(RectHV rect){
+		Stack<Point2D>points=new Stack<Point2D>();
+		for(Point2D p:pointset){
+			if(rect.contains(p)){
+				points.push(p);
+			}
+		}
+		return points;
+	}
+	
+	public Point2D nearest(Point2D p){
+		double distance=Double.MAX_VALUE;
+		Point2D nearestpoint=null;
+		for(Point2D point:pointset){
+			if(point.distanceTo(p)<distance){
+				distance=point.distanceTo(p);
+				nearestpoint=point;
+			}
+		}
+		return nearestpoint;
+	}
+	
+	public static void main(String[] args){
+		
+	}
+}

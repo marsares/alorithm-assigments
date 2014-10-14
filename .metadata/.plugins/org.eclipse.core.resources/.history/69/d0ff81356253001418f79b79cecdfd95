@@ -1,0 +1,173 @@
+
+public class KdTree {
+	
+	private Node root; 
+	private Stack<Point2D> points;
+	
+	private static class Node{
+		private Point2D p;
+		private RectHV rect;
+		private Node lb;
+		private Node rt;
+		private int N;
+		private int flag; 
+		
+		public Node(Point2D p,int flag,int N){
+			this.p=p;
+			this.N=N;
+			lb=null;
+			rt=null;
+			this.flag=flag;
+			if(flag==0){
+				rect=new RectHV(0,0,p.x(),1);
+			}else{
+				rect=new RectHV(0,0,1,p.y());
+			}
+		}
+	}
+	
+	public KdTree(){
+		root=null;
+	}
+	
+	public boolean isEmpty(){
+		return size()==0;
+	}
+	
+	public int size(){
+		if(root==null){
+			return 0;
+		}else{
+			return root.N;
+		}
+	}
+	
+	public void insert(Point2D p){
+		if(p==null){
+			IllegalArgumentException exp=new IllegalArgumentException("the point is not existed.");
+			throw exp;
+		}
+		root=insert(root,0,p);
+	}
+	
+	private Node insert(Node x,int flag,Point2D p){
+		if(x==null){
+			return new Node(p,flag,1);
+		}
+		if(x.rect.contains(p)){			
+			x.lb=insert(x.lb,(flag+1)%2,p);
+		}
+		else if(!x.p.equals(p)){
+			x.rt=insert(x.rt,(flag+1)%2,p);
+		}
+		x.N=1+x.lb.N+x.rt.N;
+		return x;
+	}
+	
+	public boolean contains(Point2D p){
+		return get(p)!=null;
+	}
+	
+	private Node get(Point2D p){
+		return get(root,p);
+	}
+	
+	private Node get(Node x,Point2D p){
+		if(x==null){
+			return null;
+		}
+		if(x.rect.contains(p)){
+			return get(x.lb,p);
+		}
+		else if(x.p.equals(p)){
+			return x;
+		}else{
+			return get(x.rt,p);
+		}
+		
+	}
+	
+	public void draw(){
+		draw(root,null);
+	}
+	
+	private void draw(Node x,Node parent){
+		if(x==null){
+			return;
+		}
+		if(parent==null){
+			StdDraw.setPenColor(StdDraw.RED);
+			StdDraw.line(root.p.x(),0,root.p.x(),1);
+		}
+		if(parent.flag==0&&parent.rect.contains(x.p)){
+			StdDraw.setPenColor(StdDraw.RED);
+			StdDraw.line(0, x.p.y(), parent.p.x(), x.p.y());
+		}
+		else if(parent.flag==0&&!parent.rect.contains(x.p)){
+			StdDraw.setPenColor(StdDraw.RED);
+			StdDraw.line(parent.p.x(), x.p.y(), 1, x.p.y());
+		}
+		else if(parent.flag==1&&parent.rect.contains(x.p)){
+			StdDraw.setPenColor(StdDraw.BLUE);
+			StdDraw.line(x.p.x(),parent.p.y(), x.p.x(), 1);
+		}else{
+			StdDraw.setPenColor(StdDraw.BLUE);
+			StdDraw.line(x.p.x(), 0, x.p.x(), parent.p.y());
+		}
+		
+		draw(x.lb,x);
+		draw(x.rt,x);
+	}
+	
+	public Iterable<Point2D> range(RectHV rect){
+		points=new Stack<Point2D>();
+		range(root,rect);
+		return points;
+	}
+	
+	private void range(Node x,RectHV rect){
+		if(x==null){
+			return;
+		}
+		if(rect.contains(x.p)){
+			points.push(x.p);
+		}
+		if(x.flag==0&&x.rect.intersects(rect)){
+			if(x.p.x()>=rect.xmin()&&x.p.x()<=rect.xmax()){
+				range(x.lb,rect);
+				range(x.rt,rect);
+			}else{
+				range(x.lb,rect);
+			}
+		}
+		if(x.flag==1&&x.rect.intersects(rect)){
+			if(x.p.y()>=rect.ymin()&&x.p.y()<=rect.ymax()){
+				range(x.lb,rect);
+				range(x.rt,rect);
+			}else{
+				range(x.lb,rect);
+			}
+		}
+	}
+	
+	public Point2D nearest(Point2D p){
+		return nearest(root,p,Double.MAX_VALUE,root).p;
+	}
+	
+	private Node nearest(Node x,Point2D p,double distance,Node nearest){
+		if(x==null){
+			return nearest;
+		}
+		if(x.p.distanceTo(p)<distance){
+			nearest=x;
+		}
+		if(x.rect.contains(p)){
+			nearest=nearest(x.lb,p,nearest.p.distanceTo(p),nearest);
+		}
+		else if()
+	}
+	
+	public static void main(String[] args){
+		
+	}
+}

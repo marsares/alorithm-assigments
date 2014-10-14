@@ -1,0 +1,278 @@
+/**
+ * <p>
+ * represent a set of points in the unit square using a 2d-tree to support
+ * efficient range search and nearest neighbor search.
+ * </p>
+ * 
+ * @author YuanBo
+ * @version 1.0
+ */
+public class KdTree {
+
+	private Node root;
+	// Iterable data structure for range()
+	private Stack<Point2D> points;
+
+	private static class Node {
+		private Point2D p;
+		private RectHV rect;
+		private RectHV rect2;
+		private Node lb;
+		private Node rt;
+		private int N;
+		// record the split type
+		private int flag;
+
+		public Node(Point2D p, int flag, int N, Node parent) {
+			this.p = p;
+			this.N = N;
+			lb = null;
+			rt = null;
+			this.flag = flag;
+			if (parent == null) {
+				rect = new RectHV(0, 0, p.x(), 1);
+				rect2 = new RectHV(p.x(), 0, 1, 1);
+			} else if (parent.flag == 0 && parent.rect.contains(p)) {
+				rect = new RectHV(parent.rect.xmin(), parent.rect.ymin(),
+						parent.rect.xmax(), p.y());
+				rect2 = new RectHV(parent.rect.xmin(), p.y(),
+						parent.rect.xmax(), parent.rect.ymax());
+			} else if (parent.flag == 0 && !parent.rect.contains(p)) {
+				rect = new RectHV(parent.rect2.xmin(), parent.rect2.ymin(),
+						parent.rect2.xmax(), p.y());
+				rect2 = new RectHV(parent.rect2.xmin(), p.y(),
+						parent.rect2.xmax(), parent.rect2.ymax());
+			} else if (parent.flag == 1 && parent.rect.contains(p)) {
+				rect = new RectHV(parent.rect.xmin(), parent.rect.ymin(),
+						p.x(), parent.rect.ymax());
+				rect2 = new RectHV(p.x(), parent.rect.ymin(),
+						parent.rect.xmax(), parent.rect.ymax());
+			} else if (parent.flag == 1 && !parent.rect.contains(p)) {
+				rect = new RectHV(parent.rect2.xmin(), parent.rect2.ymin(),
+						p.x(), parent.rect2.ymax());
+				rect2 = new RectHV(p.x(), parent.rect2.ymin(),
+						parent.rect2.xmax(), parent.rect2.ymax());
+			}
+		}
+	}
+
+	/**
+	 * <p>
+	 * construct an empty set of points
+	 * </p>
+	 */
+	public KdTree() {
+		root = null;
+	}
+
+	/**
+	 * <p>
+	 * is the set empty?
+	 * </p>
+	 * 
+	 * @return whether the set is empty
+	 */
+	public boolean isEmpty() {
+		return size() == 0;
+	}
+
+	/**
+	 * <p>
+	 * number of points in the set
+	 * </p>
+	 * 
+	 * @return number of points in the set
+	 */
+	public int size() {
+		if (root == null) {
+			return 0;
+		} else {
+			return root.N;
+		}
+	}
+
+	/**
+	 * <p>
+	 * add the point to the set (if it is not already in the set)
+	 * </p>
+	 * 
+	 * @param p
+	 *            the point to be inserted
+	 */
+	public void insert(Point2D p) {
+		if (p == null) {
+			IllegalArgumentException exp = new IllegalArgumentException(
+					"the point is not existed.");
+			throw exp;
+		}
+		root = insert(root, 0, p, null);
+	}
+
+	private Node insert(Node x, int flag, Point2D p, Node parent) {
+		if (x == null) {
+			return new Node(p, flag, 1, parent);
+		}
+		if (x.rect2.contains(p)) {
+			if (!x.p.equals(p)) {
+				x.rt = insert(x.rt, (flag + 1) % 2, p, x);
+			}
+		} else {
+			x.lb = insert(x.lb, (flag + 1) % 2, p, x);
+		}
+		if (x.lb != null && x.rt == null) {
+			x.N = 1 + x.lb.N;
+		} else if (x.lb == null && x.rt != null) {
+			x.N = 1 + x.rt.N;
+		} else if (x.lb != null && x.rt != null) {
+			x.N = 1 + x.lb.N + x.rt.N;
+		}
+		return x;
+	}
+
+	/**
+	 * <p>
+	 * does the set contain point p?
+	 * </p>
+	 * 
+	 * @param p
+	 *            point p
+	 * @return whether the set contains point p
+	 */
+	public boolean contains(Point2D p) {
+		return get(p) != null;
+	}
+
+	private Node get(Point2D p) {
+		return get(root, p);
+	}
+
+	private Node get(Node x, Point2D p) {
+		if (x == null) {
+			return null;
+		}
+		if (x.rect2.contains(p) && !x.p.equals(p)) {
+			return get(x.rt, p);
+		} else if (x.p.equals(p)) {
+			return x;
+		} else {
+			return get(x.lb, p);
+		}
+
+	}
+
+	/**
+	 * <p>
+	 * draw all points to standard draw
+	 * </p>
+	 */
+	public void draw() {
+		draw(root);
+	}
+
+	private void draw(Node x) {
+		if (x == null) {
+			return;
+		}
+		if (x.flag == 0) {
+			StdDraw.setPenColor(StdDraw.RED);
+			StdDraw.line(x.rect.xmax(), x.rect.ymin(), x.rect.xmax(),
+					x.rect.ymax());
+		} else {
+			StdDraw.setPenColor(StdDraw.BLUE);
+			StdDraw.line(x.rect.xmin(), x.rect.ymax(), x.rect.xmax(),
+					x.rect.ymax());
+		}
+		StdDraw.setPenColor(StdDraw.BLACK);
+		StdDraw.point(x.p.x(), x.p.y());
+		draw(x.lb);
+		draw(x.rt);
+	}
+
+	/**
+	 * <p>
+	 * all points that are inside the rectangle
+	 * </p>
+	 * 
+	 * @param rect
+	 *            the rectangle
+	 * @return all points that are inside the rectangle
+	 */
+	public Iterable<Point2D> range(RectHV rect) {
+		points = new Stack<Point2D>();
+		range(root, rect);
+		return points;
+	}
+
+	private void range(Node x, RectHV rect) {
+		if (x == null) {
+			return;
+		}
+		if (rect.contains(x.p)) {
+			points.push(x.p);
+		}
+		if (x.flag == 0 && x.rect.intersects(rect)) {
+			if (x.p.x() >= rect.xmin() && x.p.x() <= rect.xmax()) {
+				range(x.lb, rect);
+				range(x.rt, rect);
+			} else {
+				range(x.lb, rect);
+			}
+		}
+		if (x.flag == 1 && x.rect.intersects(rect)) {
+			if (x.p.y() >= rect.ymin() && x.p.y() <= rect.ymax()) {
+				range(x.lb, rect);
+				range(x.rt, rect);
+			} else {
+				range(x.lb, rect);
+			}
+		}
+	}
+
+	/**
+	 * <p>
+	 * a nearest neighbor in the set to point p; null if the set is empty
+	 * </p>
+	 * 
+	 * @param p
+	 *            the point
+	 * @return a nearest neighbor in the set to point p; null if the set is
+	 *         empty
+	 */
+	public Point2D nearest(Point2D p) {
+		return nearest(root, p, root).p;
+	}
+
+	private Node nearest(Node x, Point2D p, Node nearest) {
+		if (x == null) {
+			return nearest;
+		}
+		Node nearestnode = nearest;
+		if (x.p.distanceTo(p) <= nearest.p.distanceTo(p)) {
+			nearestnode = x;
+		}
+		if (x.rect.contains(p)) {
+			nearestnode = nearest(x.lb, p, nearestnode);
+			nearestnode = nearest(x.rt, p, nearestnode);
+		} else if (x.rect2.contains(p)) {
+			nearestnode = nearest(x.rt, p, nearestnode);
+			nearestnode = nearest(x.lb, p, nearestnode);
+		} else if (x.flag == 0 && p.x() < x.p.x()) {
+			nearestnode = nearest(x.lb, p, nearestnode);
+			nearestnode = nearest(x.rt, p, nearestnode);
+		} else if (x.flag == 0 && p.x() >= x.p.x()) {
+			nearestnode = nearest(x.rt, p, nearestnode);
+			nearestnode = nearest(x.lb, p, nearestnode);
+		} else if (x.flag == 1 && p.y() > x.p.y()) {
+			nearestnode = nearest(x.lb, p, nearestnode);
+			nearestnode = nearest(x.rt, p, nearestnode);
+		} else {
+			nearestnode = nearest(x.rt, p, nearestnode);
+			nearestnode = nearest(x.lb, p, nearestnode);
+		}
+		return nearest;
+	}
+
+	public static void main(String[] args) {
+
+	}
+}

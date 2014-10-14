@@ -1,0 +1,86 @@
+
+public class KdTree {
+	
+	private Node root; 
+	
+	private static class Node{
+		private Point2D p;
+		private RectHV rect;
+		private Node lb;
+		private Node rt;
+		private int N;
+		
+		public Node(Point2D p,int flag,int N){
+			this.p=p;
+			this.N=N;
+			lb=null;
+			rt=null;
+			if(flag==0){
+				rect=new RectHV(0,0,p.x(),1);
+			}else{
+				rect=new RectHV(0,0,1,p.y());
+			}
+		}
+	}
+	
+	public KdTree(){
+		root=null;
+	}
+	
+	public boolean isEmpty(){
+		return size()==0;
+	}
+	
+	public int size(){
+		if(root==null){
+			return 0;
+		}else{
+			return root.N;
+		}
+	}
+	
+	public void insert(Point2D p){
+		if(p==null){
+			IllegalArgumentException exp=new IllegalArgumentException("the point is not existed.");
+			throw exp;
+		}
+		root=insert(root,0,p);
+	}
+	
+	private Node insert(Node x,int flag,Point2D p){
+		if(x==null){
+			return new Node(p,flag,1);
+		}
+		if(x.rect.contains(p)){			
+			x.lb=insert(x.lb,(flag+1)%2,p);
+		}
+		else if(!x.p.equals(p)){
+			x.rt=insert(x.rt,(flag+1)%2,p);
+		}
+		x.N=1+x.lb.N+x.rt.N;
+		return x;
+	}
+	
+	public boolean contains(Point2D p){
+		Key key=new Key(p.x(),p.y());
+		return bst.contains(key);
+	}
+	
+	public void draw(){
+		for(Key key:bst.keys()){
+			bst.get(key).draw();
+		}
+	}
+	
+	public Iterable<Point2D> range(RectHV rect){
+		
+	}
+	
+	public Point2D nearest(Point2D p){
+		
+	}
+	
+	public static void main(String[] args){
+		
+	}
+}

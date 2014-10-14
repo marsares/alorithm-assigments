@@ -1,0 +1,31 @@
+
+public class Key implements Comparable{
+	
+	private double x;
+	private double y;
+	private int flag;
+	
+	public Key(double x,double y,int flag){
+		this.x=x;
+		this.y=y;
+		this.flag=flag;
+	}
+	
+	public int compareTo(Object that){
+		Key key=(Key)that;
+		if(this.x==key.x&&this.y==key.y){
+			return 0;
+		}
+		else if(flag==0&&this.x<=key.x){
+			return -1;
+		}
+		else if(flag==0&&this.x>key.x){
+			return 1;
+		}
+		else if(flag==1&&this.y<=key.y){
+			return -1;
+		}else{
+			return 1;
+		}
+	}
+}
